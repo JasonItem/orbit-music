@@ -5,7 +5,15 @@ export function useMediaUrl(filePath?: string | null) {
 
   useEffect(() => {
     let cancelled = false
-    if (!filePath || !window.musicApp) {
+    if (!filePath) {
+      setUrl(null)
+      return
+    }
+    if (/^https?:\/\//i.test(filePath)) {
+      setUrl(filePath)
+      return
+    }
+    if (!window.musicApp) {
       setUrl(null)
       return
     }

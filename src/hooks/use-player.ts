@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { t } from '@/i18n'
-import type { Track } from '@/types/music'
+import { isPluginTrack, type Track } from '@/types/music'
 
 export type RepeatMode = 'off' | 'all' | 'one'
 
@@ -70,8 +70,38 @@ export function usePlayer() {
       setPlaying(false)
       return
     }
-    const url = await window.musicApp.mediaUrl(track.path)
-    if (!url) return
+
+    let url: string | null = null
+    if (isPluginTrack(track)) {
+      if (!window.musicApp.plugins?.getPlayUrl) {
+        toast.error(t('plugins.unavailable'))
+        setPlaying(false)
+        return
+      }
+      try {
+        const play = await window.musicApp.plugins.getPlayUrl({
+          pluginId: track.pluginId,
+          sourceId: track.sourceId,
+          path: track.path,
+        })
+        url = play?.url || null
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : t('player.playFailed')
+        )
+        setPlaying(false)
+        return
+      }
+    } else {
+      url = await window.musicApp.mediaUrl(track.path)
+    }
+
+    if (!url) {
+      toast.error(t('player.playFailed'))
+      setPlaying(false)
+      return
+    }
+
     const audio = audioRef.current
     audio.src = url
     setCurrent(track)
@@ -79,10 +109,14 @@ export function usePlayer() {
     setCurrentTime(0)
     try {
       await audio.play()
-      void window.musicApp.bumpPlay(track.id)
+      if (!isPluginTrack(track) && track.id > 0) {
+        void window.musicApp.bumpPlay(track.id)
+      }
     } catch (error) {
-      const ext =
-        track.path.split('.').pop()?.toUpperCase() || t('player.audioFallback')
+      const ext = isPluginTrack(track)
+        ? 'ONLINE'
+        : track.path.split('.').pop()?.toUpperCase() ||
+          t('player.audioFallback')
       toast.error(
         error instanceof DOMException && error.name === 'NotSupportedError'
           ? t('player.unsupportedFormat', { ext })

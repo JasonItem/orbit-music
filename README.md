@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>面向本地曲库的桌面音乐播放器</strong><br />
-  文件夹导入 · SQLite 曲库 · 歌词 · 歌单 · 收藏
+  文件夹导入 · SQLite 曲库 · 沉浸歌词 · 歌单收藏 · 插件扩展
 </p>
 
 <p align="center">
@@ -19,18 +19,20 @@
 
 ---
 
-**Orbit Music（环轨音乐）** 是一款本地音乐播放器：按文件夹导入曲库，用 SQLite 管理元数据，支持歌词、歌单、收藏与沉浸式播放页。界面基于 React + ReUI，运行于 Electron，支持 Windows 与 macOS。
+**Orbit Music（环轨音乐）** 是一款本地优先的桌面播放器：按文件夹导入曲库，用 SQLite 管理元数据，支持歌词、歌单、收藏、播放队列，以及可扩展的**插件机制**（搜索 / 在线试听 / 按本地格式下载入库）。界面基于 React + ReUI，运行于 Electron，支持 Windows 与 macOS。
 
 ## 界面预览
 
-| 专辑 | 歌手 |
-| :---: | :---: |
-| ![专辑页](docs/screenshots/02-albums.png) | ![歌手页](docs/screenshots/03-artists.png) |
+<p align="center">
+  <img src="docs/screenshots/01-songs.png" alt="歌曲曲库" width="90%" />
+  <br />
+  <em>曲库 · 歌曲列表与底部播放栏</em>
+</p>
 
 <p align="center">
-  <img src="docs/screenshots/04-favorites.png" alt="收藏页" width="90%" />
+  <img src="docs/screenshots/05-now-playing.png" alt="沉浸歌词页" width="90%" />
   <br />
-  <em>收藏 · 歌单与底部播放栏</em>
+  <em>沉浸式播放页 · 封面氛围与逐行歌词</em>
 </p>
 
 ## 功能特性
@@ -39,8 +41,10 @@
 - **SQLite 本地索引** — 快速检索歌曲、专辑、歌手与歌单
 - **播放模式** — 随机播放、列表循环 / 单曲循环、播放队列
 - **收藏** — 用星标收藏歌曲，独立入口管理
-- **歌词页** — 沉浸式播放页，封面氛围背景
+- **歌词页** — 沉浸式播放页，封面氛围背景与 LRC 高亮
 - **歌单** — 新建、重命名、排序与整理
+- **本地 / 在线搜索** — 本地曲库检索；启用插件后可在「在线」中搜索、试听与下载
+- **插件机制** — 开发者可适配自有 HTTP API（见 [docs/plugins.md](docs/plugins.md)）
 - **中英双语** — 界面文案支持中文 / English
 - **桌面壳层** — 无边框窗口、侧栏导航、窗口控制
 
@@ -75,6 +79,18 @@ MP3、FLAC、OGG/Opus、WAV、AAC、M4A、MP4、WMA、AIFF、WebM（Chromium 可
 - **歌词：** 与音频同名的 `.lrc`，放在同一目录
 - **封面：** 文件夹内的 `cover.jpg` / `cover.png`（专辑内歌曲共用）
 
+插件下载到本地时，也会按同一约定落盘并自动入库。
+
+## 插件扩展
+
+开发者可编写适配插件，把自有 API 接到 Orbit Music：
+
+1. 阅读 [插件开发指南](docs/plugins.md)
+2. 参考带中文注释的官方示例 [`plugins-examples/orbit-official-demo`](plugins-examples/orbit-official-demo)
+3. 在应用 **设置 → 插件** 中安装文件夹或 ZIP，启用后到 **搜索 → 在线** 使用
+
+官方示例未配置 `baseUrl` 时，搜索 `demo` / `orbit` / `示例` 即可试用内置演示曲。
+
 ## 开发
 
 ### 环境要求
@@ -92,6 +108,8 @@ pnpm rebuild:native   # 为 Electron 重建 better-sqlite3
 pnpm dev              # 启动 Vite + Electron
 ```
 
+> 修改 `electron/`（含插件宿主）后需**完全退出并重新 `pnpm dev`**，主进程不会随页面热更新。
+
 ### 常用脚本
 
 | 命令 | 说明 |
@@ -108,23 +126,29 @@ pnpm dev              # 启动 Vite + Electron
 
 ```text
 orbit-music/
-├── electron/          # 主进程（IPC、SQLite、媒体、窗口）
+├── electron/          # 主进程（IPC、SQLite、媒体、窗口、插件宿主）
 │   ├── main.cjs
 │   ├── preload.cjs
 │   ├── db.cjs
-│   └── media-assets.cjs
+│   ├── media-assets.cjs
+│   └── plugins/
+├── plugins-examples/
+│   └── orbit-official-demo/   # 官方插件示例（含中文注释）
 ├── src/               # 渲染进程（React + Vite + Tailwind）
 │   ├── components/
 │   ├── hooks/
 │   └── i18n/
 ├── build/             # 图标与 macOS entitlements
-├── docs/screenshots/  # README 截图
+├── docs/
+│   ├── plugins.md     # 插件开发指南
+│   └── screenshots/
 ├── public/            # 静态资源
 └── .github/workflows/ # 发布流水线
 ```
 
-- **主进程**：遍历文件夹、用 `music-metadata` 解析标签、写入 SQLite，并通过自定义协议提供本地音频与封面。
-- **渲染进程**：React 19 单页应用，含音乐壳层、播放栏、歌词页与歌单管理。
+- **主进程**：遍历文件夹、解析标签、写入 SQLite；自定义协议提供本地音频与封面；加载用户插件并聚合搜索 / 播放 URL / 下载。
+- **渲染进程**：React 19 单页应用，含音乐壳层、播放栏、歌词页、歌单与插件设置。
+- **插件**：见 [docs/plugins.md](docs/plugins.md)。
 
 ## 发布与 CI
 
@@ -135,7 +159,7 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-也可在 **Actions → Release → Run workflow** 手动触发；打标签时会自动汇总产物并发布。
+也可在 **Actions → Release → Run workflow** 手动触发。
 
 构建矩阵：
 

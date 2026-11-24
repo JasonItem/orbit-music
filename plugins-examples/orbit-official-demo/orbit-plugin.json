@@ -1,0 +1,16 @@
+{
+  "id": "orbit-official-demo",
+  "name": "Orbit 官方示例",
+  "version": "1.0.0",
+  "description": "官方插件示例：演示搜索、详情（含歌词）、在线播放与下载。未配置 baseUrl 时使用内置演示曲；配置后可对接你自己的 HTTP API。",
+  "author": "Orbit Music",
+  "main": "index.cjs",
+  "capabilities": ["search", "getSongDetail", "getPlayUrl"],
+  "configSchema": {
+    "baseUrl": {
+      "type": "string",
+      "label": "API 根地址（可选，例如 https://api.example.com）",
+      "default": ""
+    }
+  }
+}

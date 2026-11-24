@@ -172,6 +172,7 @@ export function PlayerBar({
               type="button"
               variant="ghost"
               size="icon-sm"
+              className="rounded-full!"
               aria-label={liked ? t('player.unlike') : t('player.like')}
               disabled={!current || !onToggleLiked}
               onClick={() => onToggleLiked?.()}
@@ -191,16 +192,16 @@ export function PlayerBar({
                     variant="ghost"
                     size="icon-sm"
                     className={cn(
-                      'relative text-muted-foreground',
+                      'rounded-full! size-9! relative text-muted-foreground',
                       shuffle && 'text-foreground hover:text-foreground'
                     )}
                     aria-label={shuffleTooltip}
                     aria-pressed={shuffle}
                     onClick={onToggleShuffle}
                   >
-                    <ShuffleIcon className="size-4" />
+                    <ShuffleIcon className="size-3.5" />
                     {shuffle ? (
-                      <span className="bg-foreground absolute bottom-0.5 left-1/2 size-1 -translate-x-1/2 rounded-full" />
+                      <span className="bg-foreground absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full" />
                     ) : null}
                   </Button>
                 </TooltipTrigger>
@@ -210,35 +211,38 @@ export function PlayerBar({
                 type="button"
                 variant="ghost"
                 size="icon-sm"
+                className="rounded-full! size-9!"
                 aria-label={t('player.previous')}
                 disabled={!current}
                 onClick={onPrevious}
               >
-                <SkipBackIcon className="size-5 fill-current" />
+                <SkipBackIcon className="size-4 fill-current" />
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
+                className="rounded-full! size-11!"
                 aria-label={playing ? t('common.pause') : t('common.play')}
                 disabled={!current}
                 onClick={onToggle}
               >
                 {playing ? (
-                  <PauseIcon className="size-6 fill-current" />
+                  <PauseIcon className="size-5 fill-current" />
                 ) : (
-                  <PlayIcon className="size-6 fill-current" />
+                  <PlayIcon className="size-5 fill-current" />
                 )}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon-sm"
+                className="rounded-full! size-9!"
                 aria-label={t('player.next')}
                 disabled={!current}
                 onClick={onNext}
               >
-                <SkipForwardIcon className="size-5 fill-current" />
+                <SkipForwardIcon className="size-4 fill-current" />
               </Button>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -247,7 +251,7 @@ export function PlayerBar({
                     variant="ghost"
                     size="icon-sm"
                     className={cn(
-                      'relative text-muted-foreground',
+                      'rounded-full! size-9! relative text-muted-foreground',
                       repeatMode !== 'off' && 'text-foreground hover:text-foreground'
                     )}
                     aria-label={repeatTooltip}
@@ -255,12 +259,12 @@ export function PlayerBar({
                     onClick={onCycleRepeat}
                   >
                     {repeatMode === 'one' ? (
-                      <Repeat1Icon className="size-4" />
+                      <Repeat1Icon className="size-3.5" />
                     ) : (
-                      <Repeat2Icon className="size-4" />
+                      <Repeat2Icon className="size-3.5" />
                     )}
                     {repeatMode !== 'off' ? (
-                      <span className="bg-foreground absolute bottom-0.5 left-1/2 size-1 -translate-x-1/2 rounded-full" />
+                      <span className="bg-foreground absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full" />
                     ) : null}
                   </Button>
                 </TooltipTrigger>
@@ -291,6 +295,7 @@ export function PlayerBar({
               type="button"
               variant="ghost"
               size="icon-sm"
+              className="rounded-full!"
               aria-label={t('player.queue')}
               aria-pressed={queueOpen}
               onClick={() => setQueueOpen(true)}
@@ -303,6 +308,7 @@ export function PlayerBar({
               type="button"
               variant="ghost"
               size="icon-sm"
+              className="rounded-full!"
               aria-label={muted || volume === 0 ? t('player.unmute') : t('player.mute')}
               onClick={onMuteToggle}
             >

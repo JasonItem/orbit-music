@@ -29,7 +29,12 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { groupTracks } from '@/lib/library-groups'
 import { cn } from '@/lib/utils'
 import { useT } from '@/i18n/react'
-import type { NavId, Playlist, Track } from '@/types/music'
+import {
+  isPluginTrack,
+  type NavId,
+  type Playlist,
+  type Track,
+} from '@/types/music'
 
 type DetailFrom = 'artists' | 'albums' | 'artist'
 
@@ -138,7 +143,12 @@ export function MusicShell() {
   useEffect(() => {
     let cancelled = false
     const check = async () => {
-      if (!window.musicApp || !player.current || !playlistsApi.liked) {
+      if (
+        !window.musicApp ||
+        !player.current ||
+        !playlistsApi.liked ||
+        isPluginTrack(player.current)
+      ) {
         setCurrentLiked(false)
         return
       }
@@ -604,6 +614,7 @@ export function MusicShell() {
         onOpenArtist={openArtistFromSearch}
         onOpenAlbum={(albumId) => openAlbumFromSearch(albumId)}
         onOpenPlaylist={openPlaylistFromSearch}
+        onLibraryRefresh={() => library.refresh()}
       />
     )
   } else if (nav === 'artists') {
@@ -786,7 +797,13 @@ export function MusicShell() {
                 onClearQueue={player.clearQueue}
                 onToggleLiked={() => {
                   void (async () => {
-                    if (!player.current || !playlistsApi.liked) return
+                    if (
+                      !player.current ||
+                      !playlistsApi.liked ||
+                      isPluginTrack(player.current)
+                    ) {
+                      return
+                    }
                     if (currentLiked) {
                       await playlistsApi.removeTrackFromPlaylist(
                         playlistsApi.liked.id,

@@ -20,6 +20,64 @@ export interface Track {
   last_played_at: string | null
   /** Local file missing or moved */
   missing?: boolean
+  /** Online track from a plugin (not in local SQLite) */
+  online?: boolean
+  pluginId?: string
+  sourceId?: string
+}
+
+export interface PluginInfo {
+  id: string
+  name: string
+  version: string
+  description: string
+  author: string
+  dir: string
+  capabilityNames: string[]
+  enabled: boolean
+  loaded: boolean
+  error: string | null
+  configSchema: Record<string, unknown> | null
+}
+
+export interface PluginPlayUrl {
+  url: string
+  expiresAt: number | null
+  quality: string | null
+  mimeType: string | null
+}
+
+export interface PluginDownloadProgress {
+  pluginId: string
+  sourceId: string
+  phase: string
+  loaded?: number
+  total?: number | null
+}
+
+export function isPluginTrack(
+  track: Pick<Track, 'path' | 'online'> | null | undefined
+): boolean {
+  if (!track) return false
+  if (track.online) return true
+  return Boolean(track.path?.startsWith('orbit-plugin://'))
+}
+
+export function parsePluginTrackPath(
+  filePath: string
+): { pluginId: string; sourceId: string } | null {
+  if (!filePath?.startsWith('orbit-plugin://')) return null
+  const rest = filePath.slice('orbit-plugin://'.length)
+  const slash = rest.indexOf('/')
+  if (slash < 0) return null
+  try {
+    const pluginId = decodeURIComponent(rest.slice(0, slash))
+    const sourceId = decodeURIComponent(rest.slice(slash + 1))
+    if (!pluginId || !sourceId) return null
+    return { pluginId, sourceId }
+  } catch {
+    return null
+  }
 }
 
 export interface Playlist {
@@ -106,6 +164,55 @@ export interface MusicAppApi {
   onImportProgress: (
     callback: (payload: { done: number; total: number }) => void
   ) => () => void
+  plugins?: {
+    list: () => Promise<PluginInfo[]>
+    reload: () => Promise<PluginInfo[]>
+    getDownloadDir: () => Promise<string>
+    setDownloadDir: (dir?: string) => Promise<string>
+    openFolder: () => Promise<string>
+    installFolder: () => Promise<PluginInfo | null>
+    installZip: () => Promise<PluginInfo | null>
+    uninstall: (pluginId: string) => Promise<boolean>
+    setEnabled: (
+      pluginId: string,
+      enabled: boolean
+    ) => Promise<PluginInfo | null>
+    getConfig: (pluginId: string) => Promise<Record<string, unknown>>
+    setConfig: (
+      pluginId: string,
+      config: Record<string, unknown>
+    ) => Promise<Record<string, unknown>>
+    search: (
+      query: string,
+      opts?: { limit?: number; offset?: number }
+    ) => Promise<Track[]>
+    getDetail: (
+      pluginIdOrPayload:
+        | string
+        | { pluginId?: string; sourceId?: string; path?: string },
+      sourceId?: string
+    ) => Promise<Track | null>
+    getLyrics: (payload: {
+      pluginId?: string
+      sourceId?: string
+      path?: string
+    }) => Promise<{ lrc: string }>
+    getPlayUrl: (payload: {
+      pluginId?: string
+      sourceId?: string
+      path?: string
+      quality?: string
+    }) => Promise<PluginPlayUrl | null>
+    download: (payload: {
+      pluginId?: string
+      sourceId?: string
+      path?: string
+      quality?: string
+    }) => Promise<Track>
+    onDownloadProgress: (
+      callback: (payload: PluginDownloadProgress) => void
+    ) => () => void
+  }
 }
 
 declare global {

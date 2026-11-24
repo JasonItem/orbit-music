@@ -58,4 +58,48 @@ contextBridge.exposeInMainWorld('musicApp', {
     ipcRenderer.on('library:importProgress', listener)
     return () => ipcRenderer.removeListener('library:importProgress', listener)
   },
+
+  plugins: {
+    list: () => ipcRenderer.invoke('plugins:list'),
+    reload: () => ipcRenderer.invoke('plugins:reload'),
+    getDownloadDir: () => ipcRenderer.invoke('plugins:getDownloadDir'),
+    setDownloadDir: (dir) => ipcRenderer.invoke('plugins:setDownloadDir', dir),
+    openFolder: () => ipcRenderer.invoke('plugins:openFolder'),
+    installFolder: () => ipcRenderer.invoke('plugins:installFolder'),
+    installZip: () => ipcRenderer.invoke('plugins:installZip'),
+    uninstall: (pluginId) => ipcRenderer.invoke('plugins:uninstall', pluginId),
+    setEnabled: (pluginId, enabled) =>
+      ipcRenderer.invoke('plugins:setEnabled', { pluginId, enabled }),
+    getConfig: (pluginId) => ipcRenderer.invoke('plugins:getConfig', pluginId),
+    setConfig: (pluginId, config) =>
+      ipcRenderer.invoke('plugins:setConfig', { pluginId, config }),
+    search: (query, opts) =>
+      ipcRenderer.invoke('plugins:search', {
+        query,
+        limit: opts?.limit,
+        offset: opts?.offset,
+      }),
+    getDetail: (pluginIdOrPayload, sourceId) => {
+      if (
+        pluginIdOrPayload &&
+        typeof pluginIdOrPayload === 'object' &&
+        !Array.isArray(pluginIdOrPayload)
+      ) {
+        return ipcRenderer.invoke('plugins:getDetail', pluginIdOrPayload)
+      }
+      return ipcRenderer.invoke('plugins:getDetail', {
+        pluginId: pluginIdOrPayload,
+        sourceId,
+      })
+    },
+    getLyrics: (payload) => ipcRenderer.invoke('plugins:getLyrics', payload),
+    getPlayUrl: (payload) => ipcRenderer.invoke('plugins:getPlayUrl', payload),
+    download: (payload) => ipcRenderer.invoke('plugins:download', payload),
+    onDownloadProgress: (callback) => {
+      const listener = (_event, payload) => callback(payload)
+      ipcRenderer.on('plugins:downloadProgress', listener)
+      return () =>
+        ipcRenderer.removeListener('plugins:downloadProgress', listener)
+    },
+  },
 })

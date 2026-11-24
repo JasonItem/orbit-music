@@ -33,3 +33,6 @@ Thumbs.db
 *.blockmap
 
 .tmp-yesplay/
+
+# Personal / private plugin adapters (do not publish)
+plugins-examples/sample-http/

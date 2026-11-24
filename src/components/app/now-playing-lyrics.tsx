@@ -181,6 +181,26 @@ export function NowPlayingLyrics({
     let cancelled = false
     const run = async () => {
       try {
+        const online =
+          track.online || track.path?.startsWith('orbit-plugin://')
+        if (online) {
+          // Search hits usually omit lyrics; fetch via plugin getSongDetail.
+          if (track.lyrics_text?.trim()) {
+            if (!cancelled) setLrc(track.lyrics_text)
+          } else if (!cancelled) {
+            setLrc('')
+          }
+          if (!window.musicApp?.plugins?.getLyrics) return
+          const result = await window.musicApp.plugins.getLyrics({
+            pluginId: track.pluginId,
+            sourceId: track.sourceId,
+            path: track.path,
+          })
+          if (!cancelled) {
+            setLrc(result.lrc || track.lyrics_text || '')
+          }
+          return
+        }
         if (window.musicApp?.getLyrics) {
           const result = await window.musicApp.getLyrics(track.id)
           if (!cancelled) setLrc(result.lrc || track.lyrics_text || '')

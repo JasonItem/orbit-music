@@ -35,6 +35,7 @@ const {
   albumNameFromFolder,
   findAlbumFolderCover,
 } = require('./media-assets.cjs')
+const pluginHost = require('./plugins/host.cjs')
 
 // Align with MyGo local walk + Chromium-playable extras.
 const AUDIO_EXTENSIONS = [
@@ -442,6 +443,128 @@ function registerIpc() {
     const lrc = loadLyricsForTrack(track.path, track.lyrics_text)
     return { lrc: lrc || '' }
   })
+
+  ipcMain.handle('plugins:list', () => pluginHost.listPlugins())
+  ipcMain.handle('plugins:reload', () => pluginHost.reloadAll())
+  ipcMain.handle('plugins:getDownloadDir', () => pluginHost.getDownloadDir())
+  ipcMain.handle('plugins:setDownloadDir', async (_event, dir) => {
+    if (dir && typeof dir === 'string') {
+      return pluginHost.setDownloadDir(dir)
+    }
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: '选择插件下载目录',
+      properties: ['openDirectory', 'createDirectory'],
+    })
+    if (result.canceled || !result.filePaths[0]) return pluginHost.getDownloadDir()
+    return pluginHost.setDownloadDir(result.filePaths[0])
+  })
+  ipcMain.handle('plugins:openFolder', () => pluginHost.openPluginsFolder())
+  ipcMain.handle('plugins:installFolder', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: '选择插件文件夹',
+      properties: ['openDirectory'],
+    })
+    if (result.canceled || !result.filePaths[0]) return null
+    const plugin = await pluginHost.installFromPath(result.filePaths[0])
+    return pluginHost.listPlugins().find((p) => p.id === plugin?.id) || null
+  })
+  ipcMain.handle('plugins:installZip', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: '选择插件 zip',
+      properties: ['openFile'],
+      filters: [
+        { name: 'Plugin ZIP', extensions: ['zip'] },
+        { name: 'All', extensions: ['*'] },
+      ],
+    })
+    if (result.canceled || !result.filePaths[0]) return null
+    const plugin = await pluginHost.installFromZip(result.filePaths[0])
+    return pluginHost.listPlugins().find((p) => p.id === plugin?.id) || null
+  })
+  ipcMain.handle('plugins:uninstall', async (_event, pluginId) => {
+    await pluginHost.uninstall(pluginId)
+    return true
+  })
+  ipcMain.handle('plugins:setEnabled', async (_event, payload) => {
+    const plugin = await pluginHost.setEnabled(
+      payload?.pluginId,
+      Boolean(payload?.enabled)
+    )
+    return pluginHost.listPlugins().find((p) => p.id === plugin?.id) || null
+  })
+  ipcMain.handle('plugins:getConfig', (_event, pluginId) =>
+    pluginHost.getConfig(pluginId)
+  )
+  ipcMain.handle('plugins:setConfig', (_event, payload) =>
+    pluginHost.setConfig(payload?.pluginId, payload?.config)
+  )
+  ipcMain.handle('plugins:search', async (_event, payload) => {
+    const songs = await pluginHost.searchAll(payload?.query, {
+      limit: payload?.limit,
+      offset: payload?.offset,
+    })
+    return songs.map((song) => pluginHost.onlineSongToTrack(song))
+  })
+  ipcMain.handle('plugins:getDetail', async (_event, payload) => {
+    let pluginId = payload?.pluginId
+    let sourceId = payload?.sourceId
+    if ((!pluginId || !sourceId) && payload?.path) {
+      const parsed = pluginHost.parsePluginPath(payload.path)
+      if (parsed) {
+        pluginId = parsed.pluginId
+        sourceId = parsed.sourceId
+      }
+    }
+    const song = await pluginHost.getSongDetail(pluginId, sourceId)
+    return song ? pluginHost.onlineSongToTrack(song) : null
+  })
+  ipcMain.handle('plugins:getLyrics', async (_event, payload) => {
+    let pluginId = payload?.pluginId
+    let sourceId = payload?.sourceId
+    if ((!pluginId || !sourceId) && payload?.path) {
+      const parsed = pluginHost.parsePluginPath(payload.path)
+      if (parsed) {
+        pluginId = parsed.pluginId
+        sourceId = parsed.sourceId
+      }
+    }
+    try {
+      const song = await pluginHost.getSongDetail(pluginId, sourceId)
+      return { lrc: song?.lyrics || '' }
+    } catch (error) {
+      console.warn('plugins:getLyrics failed', error)
+      return { lrc: '' }
+    }
+  })
+  ipcMain.handle('plugins:getPlayUrl', async (_event, payload) => {
+    let pluginId = payload?.pluginId
+    let sourceId = payload?.sourceId
+    if ((!pluginId || !sourceId) && payload?.path) {
+      const parsed = pluginHost.parsePluginPath(payload.path)
+      if (parsed) {
+        pluginId = parsed.pluginId
+        sourceId = parsed.sourceId
+      }
+    }
+    return pluginHost.getPlayUrl(pluginId, sourceId, payload?.quality)
+  })
+  ipcMain.handle('plugins:download', async (_event, payload) => {
+    let pluginId = payload?.pluginId
+    let sourceId = payload?.sourceId
+    if ((!pluginId || !sourceId) && payload?.path) {
+      const parsed = pluginHost.parsePluginPath(payload.path)
+      if (parsed) {
+        pluginId = parsed.pluginId
+        sourceId = parsed.sourceId
+      }
+    }
+    const result = await pluginHost.downloadSong(
+      pluginId,
+      sourceId,
+      payload?.quality
+    )
+    return result.track
+  })
 }
 
 if (gotSingleInstanceLock) {
@@ -463,6 +586,16 @@ if (gotSingleInstanceLock) {
     })
 
     registerIpc()
+    try {
+      await pluginHost.initPlugins(userData, {
+        importTrack: (filePath) => upsertFromFile(filePath),
+        sendProgress: (payload) => {
+          mainWindow?.webContents.send('plugins:downloadProgress', payload)
+        },
+      })
+    } catch (error) {
+      console.warn('Plugin host init failed', error)
+    }
     try {
       await repairTrackMeta()
     } catch (error) {
