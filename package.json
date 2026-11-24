@@ -2,7 +2,7 @@
   "name": "orbit-music",
   "private": true,
   "version": "0.1.0",
-  "description": "Orbit Music — polished local music player with SQLite library, lyrics, and playlists",
+  "description": "Orbit Music（环轨音乐）— 面向本地曲库的桌面播放器，支持文件夹导入、SQLite 曲库、歌词、歌单与收藏",
   "author": "Orbit Music contributors",
   "license": "MIT",
   "homepage": "https://github.com/JasonItem/orbit-music#readme",
@@ -14,12 +14,13 @@
     "url": "https://github.com/JasonItem/orbit-music/issues"
   },
   "keywords": [
-    "music-player",
+    "音乐播放器",
+    "本地音乐",
     "electron",
-    "local-music",
     "sqlite",
     "flac",
-    "playlist"
+    "歌词",
+    "歌单"
   ],
   "main": "electron/main.cjs",
   "type": "module",

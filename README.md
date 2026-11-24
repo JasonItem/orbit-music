@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-  <strong>A polished local music player for Windows &amp; macOS</strong><br />
-  Import folders · SQLite library · lyrics · playlists · favorites
+  <strong>面向本地曲库的桌面音乐播放器</strong><br />
+  文件夹导入 · SQLite 曲库 · 歌词 · 歌单 · 收藏
 </p>
 
 <p align="center">
@@ -19,123 +19,145 @@
 
 ---
 
-**Orbit Music**（环轨音乐）是一款面向本地曲库的桌面播放器：按文件夹导入音乐，用 SQLite 管理元数据，支持歌词、歌单、收藏与沉浸式播放页。界面基于 React + ReUI，运行于 Electron。
+**Orbit Music（环轨音乐）** 是一款本地音乐播放器：按文件夹导入曲库，用 SQLite 管理元数据，支持歌词、歌单、收藏与沉浸式播放页。界面基于 React + ReUI，运行于 Electron，支持 Windows 与 macOS。
 
-## Features
+## 界面预览
 
-- **Folder-first library** — Import albums by folder; tags + folder names fill metadata
-- **SQLite catalog** — Fast local index for songs, albums, artists, and playlists
-- **Playback modes** — Shuffle, repeat all / one, queue management
-- **Favorites** — Star tracks into a dedicated collection
-- **Lyrics view** — Immersive now-playing page with cover atmosphere
-- **Playlists** — Create, rename, reorder, and organize your own lists
-- **i18n** — Chinese & English UI
-- **Desktop shell** — Frameless window, sidebar navigation, keyboard-friendly controls
+| 专辑 | 歌手 |
+| :---: | :---: |
+| ![专辑页](docs/screenshots/02-albums.png) | ![歌手页](docs/screenshots/03-artists.png) |
 
-### Supported formats
+<p align="center">
+  <img src="docs/screenshots/04-favorites.png" alt="收藏页" width="90%" />
+  <br />
+  <em>收藏 · 歌单与底部播放栏</em>
+</p>
 
-MP3, FLAC, OGG/Opus, WAV, AAC, M4A, MP4, WMA, AIFF, WebM (Chromium-decodable codecs)
+## 功能特性
 
-## Download
+- **按文件夹管理曲库** — 建议一专辑一文件夹；标签缺失时用文件夹名作为专辑名
+- **SQLite 本地索引** — 快速检索歌曲、专辑、歌手与歌单
+- **播放模式** — 随机播放、列表循环 / 单曲循环、播放队列
+- **收藏** — 用星标收藏歌曲，独立入口管理
+- **歌词页** — 沉浸式播放页，封面氛围背景
+- **歌单** — 新建、重命名、排序与整理
+- **中英双语** — 界面文案支持中文 / English
+- **桌面壳层** — 无边框窗口、侧栏导航、窗口控制
 
-Installers are built by GitHub Actions and published on the [Releases](https://github.com/JasonItem/orbit-music/releases) page:
+### 支持格式
 
-| Platform | Artifact |
+MP3、FLAC、OGG/Opus、WAV、AAC、M4A、MP4、WMA、AIFF、WebM（Chromium 可解码格式）
+
+## 下载安装
+
+安装包由 GitHub Actions 自动构建，见 [Releases](https://github.com/JasonItem/orbit-music/releases)：
+
+| 平台 | 安装包 |
 | --- | --- |
-| Windows 10/11 (x64) | `Orbit Music-*-Windows-x64.exe` |
-| macOS Apple Silicon (M1/M2/M3/M4) | `Orbit Music-*-macOS-arm64.dmg` |
+| Windows 10/11（x64） | `Orbit Music-*-Windows-x64.exe` |
+| macOS Apple Silicon（M 芯片） | `Orbit Music-*-macOS-arm64.dmg` |
 | macOS Intel | `Orbit Music-*-macOS-x64.dmg` |
 
-> **macOS note:** CI builds are currently **unsigned**. On first launch, right-click the app → **Open**, or allow it in **System Settings → Privacy & Security**.
+> **macOS 提示：** CI 构建目前为**未签名**包。首次打开可右键 → **打开**，或在「系统设置 → 隐私与安全性」中允许。
 
-## Quick start (development)
+## 本地音乐存放约定
 
-### Requirements
+导入文件夹时，推荐如下结构：
+
+```text
+专辑名/
+  ├── cover.jpg                 # 专辑封面（jpg / png）
+  ├── 歌手 - 歌名.flac          # 音频
+  └── 歌手 - 歌名.lrc           # 同名歌词（可选）
+```
+
+- **歌曲命名：** `歌手 - 歌名.扩展名`
+- **歌词：** 与音频同名的 `.lrc`，放在同一目录
+- **封面：** 文件夹内的 `cover.jpg` / `cover.png`（专辑内歌曲共用）
+
+## 开发
+
+### 环境要求
 
 - Node.js 22+
 - [pnpm](https://pnpm.io/) 11+
-- Windows, macOS, or Linux (Linux packaging optional)
+- Windows / macOS / Linux（Linux 打包可选）
 
 ```bash
-# Clone
 git clone https://github.com/JasonItem/orbit-music.git
 cd orbit-music
 
-# Install
 pnpm install
-
-# Rebuild native module (better-sqlite3) for Electron
-pnpm rebuild:native
-
-# Run (Vite + Electron)
-pnpm dev
+pnpm rebuild:native   # 为 Electron 重建 better-sqlite3
+pnpm dev              # 启动 Vite + Electron
 ```
 
-### Scripts
+### 常用脚本
 
-| Command | Description |
+| 命令 | 说明 |
 | --- | --- |
-| `pnpm dev` | Start renderer + Electron in development |
-| `pnpm build` | Typecheck and build the Vite renderer |
-| `pnpm dist` | Build renderer and package for the current OS |
-| `pnpm dist:win` | Windows NSIS installer (x64) |
-| `pnpm dist:mac` | macOS DMG/ZIP for **Intel (x64)** and **Apple Silicon (arm64)** |
-| `pnpm lint` | Run oxlint |
-| `pnpm rebuild:native` | Rebuild `better-sqlite3` for the current Electron ABI |
+| `pnpm dev` | 开发模式启动渲染进程与 Electron |
+| `pnpm build` | 类型检查并构建前端 |
+| `pnpm dist` | 构建并为当前系统打包 |
+| `pnpm dist:win` | 打包 Windows NSIS 安装包（x64） |
+| `pnpm dist:mac` | 打包 macOS DMG/ZIP（Intel + Apple Silicon） |
+| `pnpm lint` | 运行 oxlint |
+| `pnpm rebuild:native` | 重建 `better-sqlite3` |
 
-## Architecture
+## 项目结构
 
-```
+```text
 orbit-music/
-├── electron/          # Main process (IPC, SQLite, media, window)
+├── electron/          # 主进程（IPC、SQLite、媒体、窗口）
 │   ├── main.cjs
 │   ├── preload.cjs
 │   ├── db.cjs
 │   └── media-assets.cjs
-├── src/               # Renderer (React + Vite + Tailwind)
+├── src/               # 渲染进程（React + Vite + Tailwind）
 │   ├── components/
 │   ├── hooks/
 │   └── i18n/
-├── build/             # Icons & macOS entitlements
-├── public/            # Static assets
-└── .github/workflows/ # Release CI
+├── build/             # 图标与 macOS entitlements
+├── docs/screenshots/  # README 截图
+├── public/            # 静态资源
+└── .github/workflows/ # 发布流水线
 ```
 
-- **Main process** walks folders, parses tags via `music-metadata`, stores tracks in SQLite (`better-sqlite3`), and serves local media/covers through a custom protocol.
-- **Renderer** is a React 19 SPA with a music shell, player bar, lyrics overlay, and playlist management.
+- **主进程**：遍历文件夹、用 `music-metadata` 解析标签、写入 SQLite，并通过自定义协议提供本地音频与封面。
+- **渲染进程**：React 19 单页应用，含音乐壳层、播放栏、歌词页与歌单管理。
 
-## Release & CI
+## 发布与 CI
 
-Push a version tag to trigger packaging for Windows and both macOS architectures, then publish a GitHub Release:
+推送版本标签即可触发 Windows 与双架构 macOS 打包，并创建 GitHub Release：
 
 ```bash
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-You can also run **Actions → Release → Run workflow** manually; artifacts upload even without creating a Release (tag pushes create the Release automatically).
+也可在 **Actions → Release → Run workflow** 手动触发；打标签时会自动汇总产物并发布。
 
-Workflow matrix:
+构建矩阵：
 
-1. **windows-latest** → NSIS `.exe` (x64)
-2. **macos-latest** → `.dmg` + `.zip` for `x64` and `arm64`
-3. **ubuntu-latest** (on tags) → aggregate assets into a GitHub Release
+1. **windows-latest** → NSIS `.exe`（x64）
+2. **macos-latest** → `.dmg` / `.zip`（`x64` + `arm64`）
+3. **ubuntu-latest**（标签推送时）→ 汇总产物到 Release
 
-## Contributing
+## 参与贡献
 
-Issues and pull requests are welcome.
+欢迎提交 Issue 与 Pull Request。
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/your-change`)
-3. Commit with a clear message
-4. Open a PR against `main`
+1. Fork 本仓库
+2. 新建分支（`git checkout -b feature/your-change`）
+3. 提交清晰的 commit
+4. 向 `main` 发起 PR
 
-Please keep changes focused; match existing TypeScript / React patterns.
+请保持改动聚焦，并尽量遵循现有 TypeScript / React 风格。
 
-## License
+## 许可证
 
 [MIT](LICENSE) © Orbit Music contributors
 
 ---
 
-<p align="center">Made for people who keep their music on disk.</p>
+<p align="center">为把音乐留在本地硬盘上的人而做。</p>
