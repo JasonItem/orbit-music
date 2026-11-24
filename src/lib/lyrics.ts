@@ -11,8 +11,9 @@ export interface LyricLine {
   words?: LyricWord[]
 }
 
+// Allow broken exports like [00:00.00-1] (extra -N before ])
 const LRC_LINE =
-  /^\[(\d{1,2}):(\d{1,2})(?:\.(\d{1,3}))?\](.*)$/
+  /^\[(\d{1,2}):(\d{1,2})(?:\.(\d{1,3}))?(?:-\d+)?\](.*)$/
 const WORD_TAG =
   /<(\d{1,2}):(\d{1,2})(?:\.(\d{1,3}))?>/g
 

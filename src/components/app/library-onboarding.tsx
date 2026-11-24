@@ -56,7 +56,7 @@ export function LibraryOnboarding({ onImportFolder }: LibraryOnboardingProps) {
           <div className="bg-muted/40 flex items-center gap-3 rounded-lg px-3 py-2.5">
             <FileAudioIcon className="text-muted-foreground size-4 shrink-0" />
             <span className="min-w-0 flex-1 truncate">
-              不要说话/红碎片 - 不要说话.flac
+              唱游/王菲 - 红豆.flac
             </span>
             <span className="text-muted-foreground shrink-0">
               {t('onboarding.audio')}
@@ -65,7 +65,7 @@ export function LibraryOnboarding({ onImportFolder }: LibraryOnboardingProps) {
           <div className="bg-muted/40 flex items-center gap-3 rounded-lg px-3 py-2.5">
             <Mic2Icon className="text-muted-foreground size-4 shrink-0" />
             <span className="min-w-0 flex-1 truncate">
-              不要说话/红碎片 - 不要说话.lrc
+              唱游/王菲 - 红豆.lrc
             </span>
             <span className="text-muted-foreground shrink-0">
               {t('onboarding.lyrics')}
@@ -73,7 +73,7 @@ export function LibraryOnboarding({ onImportFolder }: LibraryOnboardingProps) {
           </div>
           <div className="bg-muted/40 flex items-center gap-3 rounded-lg px-3 py-2.5">
             <CoverDiscIcon className="text-muted-foreground size-4 shrink-0" />
-            <span className="min-w-0 flex-1 truncate">不要说话/cover.jpg</span>
+            <span className="min-w-0 flex-1 truncate">唱游/cover.jpg</span>
             <span className="text-muted-foreground shrink-0">
               {t('onboarding.cover')}
             </span>
